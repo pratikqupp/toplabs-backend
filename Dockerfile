@@ -19,7 +19,8 @@ RUN mvn clean package -DskipTests
 
 # === Stage 2: The Runner ===
 # Use a lightweight, "slim" image that only has the Java Runtime
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-jammy
+
 
 WORKDIR /app
 
