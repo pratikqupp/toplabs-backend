@@ -47,22 +47,22 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String signup(SignupRequest request) {
-        // 1️⃣ Check if user already exists by phone
+        //  Check if user already exists by phone
         if (userRepository.findByMobileNumber(request.getMobile()).isPresent()) {
             return "User already exists. Please login with OTP.";
         }
 
-        // 2️⃣ Create new user
+        //  Create new user
         AppUser user = new AppUser();
 
-        // ✅ Manually set ID
+        //  Manually set ID
         if (request.getId() != null && !request.getId().isEmpty()) {
             user.setId(request.getId());
         } else {
             throw new RuntimeException("User ID is required since it's manually assigned.");
         }
 
-        // 3️⃣ Set basic info
+        // Set basic info
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName() != null ? request.getLastName() : "Unknown");
         user.setEmail(request.getEmail());
@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
         //Save user
         userRepository.save(user);
 
-        // 7️⃣ Return OTP or success message
+        //  Return OTP or success message
         return generateOtpForUser(user);
     }
 
@@ -181,10 +181,10 @@ public class AuthServiceImpl implements AuthService {
         otp.setExpiry(LocalDateTime.now().plusMinutes(10));
         otpRepository.save(otp);
 
-        // ✅ Log safely (without exposing OTP)
+        // Log safely (without exposing OTP)
         log.info("New OTP generated for user with mobile: {}", user.getMobileNumber());
 
-        // ✅ return OTP (so you can send via SMS/Email service)
+        //  return OTP (so you can send via SMS/Email service)
         return otpCode;
     }
 }
