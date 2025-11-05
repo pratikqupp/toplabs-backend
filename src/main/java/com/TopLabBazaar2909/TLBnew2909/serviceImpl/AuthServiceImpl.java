@@ -74,19 +74,19 @@ public class AuthServiceImpl implements AuthService {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        // 4️⃣ Assign Role
+        //  Assign Role
         Role22 role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Invalid Role ID"));
         user.setRole(role);
 
-        // 5️⃣ Assign Position
+        //  Assign Position
         if (request.getPositionId() != null && !request.getPositionId().isEmpty()) {
             Position position = positionRepository.findById(Long.valueOf(request.getPositionId()))
                     .orElseThrow(() -> new RuntimeException("Invalid Position ID"));
             user.setPosition(position);
         }
 
-        // 6️⃣ Save user
+        //Save user
         userRepository.save(user);
 
         // 7️⃣ Return OTP or success message
