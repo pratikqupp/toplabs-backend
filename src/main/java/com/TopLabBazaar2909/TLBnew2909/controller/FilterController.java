@@ -82,20 +82,20 @@ public class FilterController {
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/position/department/{departmentId}")
+    @GetMapping("/user/filter/position/role/{roleId}")
     public ResponseEntity<List<PositionDTO>> getPositionsByRole(@PathVariable String roleId) {
         return ResponseEntity.ok(positionService.getPositionsByRole(roleId));
     }
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/position/deptrole/:departmentId/{roleId}")
+    @GetMapping("/user/filter/position/deptrole/{departmentId}/{roleId}")
     public ResponseEntity<List<PositionDTO>> getPositionsByDeptAndRole(@PathVariable String departmentId,
                                                                     @PathVariable String roleId) {
         return ResponseEntity.ok(positionService.getPositionsByDeptRole(departmentId, roleId));
     }
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/user/department/:departmentId")
+    @GetMapping("/user/filter/user/department/{departmentId}")
     public ResponseEntity<List<UserTeamDTO>> getUsersByDepartment(@PathVariable String departmentId) {
         return ResponseEntity.ok(hierarchyService.getUsersByDepartment(departmentId));
     }
