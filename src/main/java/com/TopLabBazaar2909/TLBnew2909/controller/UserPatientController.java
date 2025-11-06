@@ -29,7 +29,7 @@ public class UserPatientController {
 
     //  Get patient by phone
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/{/mobilenumber}")
+    @GetMapping("/{mobilenumber}")
     public ResponseEntity<UserPatient> getUserByPhone(@PathVariable String phone) {
         Optional<UserPatient> user = userPatientService.getUserByPhone(phone);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -45,7 +45,7 @@ public class UserPatientController {
 
     // Update patient by phone
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{/mobilenumber}")
+    @PutMapping("/{mobilenumber}")
     public ResponseEntity<UserPatient> updateUser(@PathVariable String phone,
                                                   @RequestBody UserPatient updateUser) {
         Optional<UserPatient> updated = userPatientService.updateUser(phone, updateUser);

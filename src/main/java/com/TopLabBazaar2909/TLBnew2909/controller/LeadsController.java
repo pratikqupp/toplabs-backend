@@ -53,7 +53,7 @@ public class LeadsController {
     // 4️ GET LEADS BY USER MOBILE NUMBER
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/mobile/{/mobilenumber}")
+    @GetMapping("/mobile/{mobilenumber}")
     public List<Leads> getLeadsByMobile(@PathVariable String mobile) {
         return leadsService.getLeadsByMobile(mobile);
     }
