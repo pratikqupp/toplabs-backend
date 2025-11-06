@@ -28,7 +28,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResource createCategory(CategoryDTO categoryDTO) {
         Category category = new Category();
 
-        // ✅ Generate manual ID
+        //  Generate manual ID
         String lastId = categoryRepository.findTopByOrderByIdDesc()
                 .map(Category::getId)
                 .orElse("CAT000"); // default if no records exist
