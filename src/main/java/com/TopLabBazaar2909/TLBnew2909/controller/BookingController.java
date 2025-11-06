@@ -72,7 +72,7 @@ public class BookingController {
 
     //  partial update booking by id
    ////@PreAuthorize("isAuthenticated()")
-    @PatchMapping("/patch/:id")
+    @PatchMapping("/patch/{id}")
     public ResponseEntity<BookingDTO> patchBooking(
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -81,7 +81,7 @@ public class BookingController {
 
     //  update phlebo location
    ////@PreAuthorize("isAuthenticated()")
-    @PutMapping("/updatePhleboLocation/:id")
+    @PutMapping("/updatePhleboLocation/{id}")
     public ResponseEntity<BookingDTO> updatePhleboLocation(
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -90,7 +90,7 @@ public class BookingController {
 
     //  update runner location
     //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/updateRunnerLocation/:id")
+    @PutMapping("/updateRunnerLocation/{id}")
     public ResponseEntity<BookingDTO> updateRunnerLocation(
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -99,7 +99,7 @@ public class BookingController {
 
     //  delete booking
      //@PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/cancel/:id")
+    @DeleteMapping("/cancel/{id}")
     public ResponseEntity<Map<String, String>> deleteBooking(@PathVariable("id") String id) {
         Map<String, String> response = bookingService.deleteBooking(id);
         return ResponseEntity.ok(response);

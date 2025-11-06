@@ -48,7 +48,7 @@ public class RoleController {
 
 
     //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/user/role/:id")
+    @PutMapping("/user/role/{id}")
     public ResponseEntity<Role22> updateRole(
             @PathVariable String roleId,
             @RequestBody Role22 roleDetails,
@@ -98,7 +98,7 @@ public class RoleController {
 
 
     //@PreAuthorize("isAuthenticated()")
-    @PatchMapping("/user/role/:id/deactivate")
+    @PatchMapping("/user/role/{id}/deactivate")
     public ResponseEntity<String> deactivateRole(@PathVariable("id") String roleId) {
         Role22 deactivated = roleService.deactivateRole(roleId);
         if (deactivated == null) {

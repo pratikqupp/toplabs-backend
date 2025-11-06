@@ -32,7 +32,7 @@ public class UserController {
 
 
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/:id")
+    @PutMapping("/{id}")
     public ResponseEntity<AppUser> updateUser(@PathVariable String id, @RequestBody UserTeam userDetails) {
         AppUser updated = userService.updateUser(id, userDetails);
         if (updated == null) return ResponseEntity.notFound().build();
@@ -40,7 +40,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/getUserById/:id")
+    @GetMapping("/getUserById/{id}")
     public ResponseEntity<AppUser> getUserById(@PathVariable String id) {
         AppUser user = userService.getUserById(id);
         if (user == null) return ResponseEntity.notFound().build();
@@ -48,7 +48,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/getUserById/:id")
+    @GetMapping("/getUserById/{id}")
     public ResponseEntity<AppUser> getUserByMobile(@PathVariable String mobile) {
         AppUser user = userService.getUserByMobile(mobile);
         if (user == null) return ResponseEntity.notFound().build();
@@ -76,7 +76,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/:id/deactivate")
+    @PutMapping("/{id}/deactivate")
     public ResponseEntity<AppUser> deactivateUser(@PathVariable String id) {
         AppUser user = userService.deactivateUser(id);
         if (user == null) return ResponseEntity.notFound().build();

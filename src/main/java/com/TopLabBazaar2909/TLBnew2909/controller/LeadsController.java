@@ -44,7 +44,7 @@ public class LeadsController {
     // 3️ GET SINGLE LEAD BY ID
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/:id")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getLead(@PathVariable String id) {
         return leadsService.getLead(id);
     }
@@ -89,7 +89,7 @@ public class LeadsController {
     //  UPDATE LEAD
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/update/:id")
+    @PutMapping("/update/{id}")
     public ResponseEntity<?> updateLead(
             @RequestParam Long phone,
             @PathVariable String leadId,
