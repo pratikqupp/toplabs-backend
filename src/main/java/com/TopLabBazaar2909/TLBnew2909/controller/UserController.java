@@ -47,13 +47,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-   //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/getUserById/{id}")
-    public ResponseEntity<AppUser> getUserByMobile(@PathVariable String mobile) {
-        AppUser user = userService.getUserByMobile(mobile);
-        if (user == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(user);
-    }
+
 
 
    //@PreAuthorize("isAuthenticated()")
