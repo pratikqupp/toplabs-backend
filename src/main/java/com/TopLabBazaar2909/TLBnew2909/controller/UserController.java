@@ -55,13 +55,6 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-   //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/validateUserByMobile")
-    public ResponseEntity<String> validateUserByMobile(@PathVariable String mobile) {
-        boolean active = userService.validateUserByMobile(mobile);
-        if (active) return ResponseEntity.ok("User is active");
-        return ResponseEntity.status(403).body("User is inactive or not found");
-    }
 
    //@PreAuthorize("isAuthenticated()")
     @PostMapping("/validateUser")
