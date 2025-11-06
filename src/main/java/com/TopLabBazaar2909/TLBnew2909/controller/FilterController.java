@@ -1,21 +1,26 @@
 package com.TopLabBazaar2909.TLBnew2909.controller;
 
+import com.TopLabBazaar2909.TLBnew2909.ServiceIntr.HierarchyService;
 import com.TopLabBazaar2909.TLBnew2909.ServiceIntr.PositionService;
 import com.TopLabBazaar2909.TLBnew2909.dto.PositionDTO;
+import com.TopLabBazaar2909.TLBnew2909.dto.RoleDTO;
+import com.TopLabBazaar2909.TLBnew2909.dto.UserTeamDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth-team-services/position")
-public class PositionController {
+@RequestMapping("/auth-team-services/filter")
+public class FilterController {
 
     private final PositionService positionService;
 
-    public PositionController(PositionService positionService) {
+    private final HierarchyService hierarchyService;
+
+    public FilterController(PositionService positionService, HierarchyService hierarchyService) {
         this.positionService = positionService;
+        this.hierarchyService = hierarchyService;
     }
 
 
@@ -70,23 +75,43 @@ public class PositionController {
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/position/department/{departmentId}")
+    @GetMapping("/user/filter/position/department/:departmentId")
     public ResponseEntity<List<PositionDTO>> getPositionsByDepartment(@PathVariable String departmentId) {
         return ResponseEntity.ok(positionService.getPositionsByDepartment(departmentId));
     }
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/position/role/{roleId}")
+    @GetMapping("/user/filter/position/department/:departmentId")
     public ResponseEntity<List<PositionDTO>> getPositionsByRole(@PathVariable String roleId) {
         return ResponseEntity.ok(positionService.getPositionsByRole(roleId));
     }
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/position/department/{departmentId}/role/{roleId}")
-    public ResponseEntity<List<PositionDTO>> getPositionsByDeptRole(@PathVariable String departmentId,
+    @GetMapping("/user/filter/position/deptrole/:departmentId/:roleId")
+    public ResponseEntity<List<PositionDTO>> getPositionsByDeptAndRole(@PathVariable String departmentId,
                                                                     @PathVariable String roleId) {
         return ResponseEntity.ok(positionService.getPositionsByDeptRole(departmentId, roleId));
+    }
+    //@PreAuthorize("isAuthenticated()")
+    @GetMapping("/user/filter/user/department/:departmentId")
+    public ResponseEntity<List<UserTeamDTO>> getUsersByDepartment(@PathVariable String departmentId) {
+        return ResponseEntity.ok(hierarchyService.getUsersByDepartment(departmentId));
+    }
+    //@PreAuthorize("isAuthenticated()")
+    @GetMapping("/user/filter/user/role/:roleId")
+    public ResponseEntity<List<UserTeamDTO>> getUsersByRole(@PathVariable String roleId) {
+        return ResponseEntity.ok(hierarchyService.getUsersByRole(roleId));
+    }
+    //@PreAuthorize("isAuthenticated()")
+    @GetMapping("/user/filter/user/position/:positionId")
+    public ResponseEntity<List<UserTeamDTO>> getUsersByPosition(@PathVariable String positionId) {
+        return ResponseEntity.ok(hierarchyService.getUsersByPosition(positionId));
+    }
+    //@PreAuthorize("isAuthenticated()")
+    @GetMapping("/user/filter/role/department/:departmentId")
+    public ResponseEntity<List<RoleDTO>> getRolesByDepartment(@PathVariable String departmentId) {
+        return ResponseEntity.ok(hierarchyService.getRolesByDepartment(departmentId));
     }
 }

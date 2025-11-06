@@ -1,18 +1,18 @@
 package com.TopLabBazaar2909.TLBnew2909.controller;
 
 import com.TopLabBazaar2909.TLBnew2909.ServiceIntr.LeadsService;
+import com.TopLabBazaar2909.TLBnew2909.dto.BookingDTO;
 import com.TopLabBazaar2909.TLBnew2909.dto.LeadsDTO;
 import com.TopLabBazaar2909.TLBnew2909.entity.Leads;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/leads")
+@RequestMapping("/leads")
 @CrossOrigin(origins = "*")
 public class LeadsController {
     private final LeadsService leadsService;
@@ -26,7 +26,7 @@ public class LeadsController {
     // 1️CREATE LEAD
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<?> createLead(@RequestBody LeadsDTO dto) {
         return leadsService.createLead(dto);
     }
@@ -35,7 +35,7 @@ public class LeadsController {
     // 2️ GET ALL LEADS
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping
+    @GetMapping("/getall")
     public List<Leads> getAllLeads() {
         return leadsService.getAllLeads();
     }
@@ -44,7 +44,7 @@ public class LeadsController {
     // 3️ GET SINGLE LEAD BY ID
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/{id}")
+    @GetMapping("/:id")
     public ResponseEntity<?> getLead(@PathVariable String id) {
         return leadsService.getLead(id);
     }
@@ -53,7 +53,7 @@ public class LeadsController {
     // 4️ GET LEADS BY USER MOBILE NUMBER
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/mobile/{mobile}")
+    @GetMapping("/mobile/:mobileNumber")
     public List<Leads> getLeadsByMobile(@PathVariable String mobile) {
         return leadsService.getLeadsByMobile(mobile);
     }
@@ -89,7 +89,7 @@ public class LeadsController {
     //  UPDATE LEAD
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{leadId}")
+    @PutMapping("/update/:id")
     public ResponseEntity<?> updateLead(
             @RequestParam Long phone,
             @PathVariable String leadId,
@@ -102,8 +102,27 @@ public class LeadsController {
     //  ASSIGN CARE MANAGER
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
-    @PostMapping("/assign-care-manager")
+    @PostMapping("/assignCareManager")
     public ResponseEntity<?> assignCareManager(@RequestBody Map<String, Object> body) {
         return leadsService.assignCareManager(body);
+    }
+
+    @PostMapping("/assign-runner")
+    public ResponseEntity<String> assignRunner(@RequestBody List<String> ids) {
+        leadsService.assignRunner((Map<String, Object>) ids);
+        return ResponseEntity.ok("Runner assigned successfully");
+    }
+
+    @PostMapping("/assign-phlebo")
+    public ResponseEntity<String> assignPhlebo(@RequestBody List<String> ids) {
+        leadsService.assignPhlebo((Map<String, Object>) ids);
+        return ResponseEntity.ok("Phlebo assigned successfully");
+    }
+
+    @PutMapping("/{id}/phlebo/location")
+    public ResponseEntity<ResponseEntity<?>> updatePhleboLocation(
+            @PathVariable("id") String id,
+            @RequestBody BookingDTO bookingDTO) {
+        return ResponseEntity.ok(leadsService.updatePhleboLocation(id, (Map<String, Object>) bookingDTO));
     }
 }

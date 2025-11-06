@@ -1,452 +1,355 @@
 package com.TopLabBazaar2909.TLBnew2909.serviceImpl;
 
-import com.TopLabBazaar2909.TLBnew2909.Enum.BookingStatus;
-import com.TopLabBazaar2909.TLBnew2909.Enum.PositionStatus;
 import com.TopLabBazaar2909.TLBnew2909.ServiceIntr.LeadsService;
 import com.TopLabBazaar2909.TLBnew2909.dto.HistoryDTO;
 import com.TopLabBazaar2909.TLBnew2909.dto.LeadsDTO;
 import com.TopLabBazaar2909.TLBnew2909.entity.AppUser;
-import com.TopLabBazaar2909.TLBnew2909.entity.LabPrice;
 import com.TopLabBazaar2909.TLBnew2909.entity.Leads;
 import com.TopLabBazaar2909.TLBnew2909.entity.Position;
-import com.TopLabBazaar2909.TLBnew2909.repository.LabPriceRepository;
-import com.TopLabBazaar2909.TLBnew2909.repository.LeadsRepository;
-import com.TopLabBazaar2909.TLBnew2909.repository.PositionRepository;
-import com.TopLabBazaar2909.TLBnew2909.repository.UserRepository;
+import com.TopLabBazaar2909.TLBnew2909.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 public class LeadsServiceImpl implements LeadsService {
+
     private final LeadsRepository leadsRepository;
     private final UserRepository userRepository;
     private final LabPriceRepository labPriceRepository;
     private final PositionRepository positionRepository;
 
-    public LeadsServiceImpl(LeadsRepository leadsRepository, UserRepository userRepository, LabPriceRepository labPriceRepository, PositionRepository positionRepository) {
+    public LeadsServiceImpl(
+            LeadsRepository leadsRepository,
+            UserRepository userRepository,
+            LabPriceRepository labPriceRepository,
+            PositionRepository positionRepository) {
         this.leadsRepository = leadsRepository;
         this.userRepository = userRepository;
         this.labPriceRepository = labPriceRepository;
         this.positionRepository = positionRepository;
     }
 
-    // ------------------------------------------
+    // ------------------------------------------------------------
     // CREATE LEAD
-    // ------------------------------------------
+    // ------------------------------------------------------------
     @Override
     public ResponseEntity<?> createLead(LeadsDTO dto) {
         try {
-            // 1️⃣ Validate input
-            if (dto.getId() == null || dto.getId().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Lead ID (id) is required"));
-            }
+            if (dto.getUserId() == null)
+                return ResponseEntity.badRequest().body(Map.of("message", "User ID is required"));
 
-            if (dto.getUserId() == null || dto.getUserId().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "userId is required"));
-            }
+            Optional<AppUser> userOpt = userRepository.findById(dto.getUserId());
+            if (userOpt.isEmpty())
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
 
-            // 2️⃣ Find user by string ID
-            Optional<AppUser> optionalUser = userRepository.findById(dto.getUserId());
-            if (optionalUser.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
-            }
-            AppUser user = optionalUser.get();
-
-            // 3️⃣ Create and populate Lead entity
             Leads lead = new Leads();
-            lead.setId(dto.getId());
-            lead.setUser(user);
             lead.setUserId(dto.getUserId());
-            lead.setPatientNote(dto.getPatientNote());
+            lead.setUser(userOpt.get());
             lead.setBookingAddress(dto.getBookingAddress());
             lead.setPaymentAmount(dto.getPaymentAmount());
-            lead.setBookingCreationDate(LocalDateTime.now());
             lead.setBookingStatus(dto.getBookingStatus() != null ? dto.getBookingStatus() : "INTERESTED");
-
-            // 4️⃣ Labs
-            if (dto.getLabs() != null && !dto.getLabs().isEmpty()) {
-                lead.setLabs(dto.getLabs());
-            }
-
-            // 5️⃣ Map all role-related fields (manual assignment from DTO)
-            lead.setCareHeadId(dto.getCareHeadId());
-            lead.setCareHeadName(dto.getCareHeadName());
-            lead.setCareHeadStatus(dto.getCareHeadStatus());
-
-            lead.setCareManagerId(dto.getCareManagerId());
-            lead.setCareManagerName(dto.getCareManagerName());
-            lead.setCareManagerStatus(dto.getCareManagerStatus());
-
-            lead.setLabHeadId(dto.getLabHeadId());
-            lead.setLabHeadName(dto.getLabHeadName());
-            lead.setLabHeadStatus(dto.getLabHeadStatus());
-
-            lead.setPhleboId(dto.getPhleboId());
-            lead.setPhleboName(dto.getPhleboName());
-            lead.setPhleboStatus(dto.getPhleboStatus());
-
-            lead.setRunnerId(dto.getRunnerId());
-            lead.setRunnerName(dto.getRunnerName());
-            lead.setRunnerStatus(dto.getRunnerStatus());
-
-            // 6️⃣ Geo fields and timestamp
+            lead.setBookingCreationDate(LocalDateTime.now());
+            lead.setPatientNote(dto.getPatientNote());
             lead.setLastUpdated(LocalDateTime.now());
+            lead.setLabs(dto.getLabs());
 
-            // Optional: use values from DTO if they exist, otherwise set defaults
-            lead.setLat(dto.getLat() != null ? dto.getLat() : 0.0);
-            lead.setLng(dto.getLng() != null ? dto.getLng() : 0.0);
+            // Default history entry
+            lead.addHistory("SYSTEM", "LEAD_CREATED", dto.getUserId(),
+                    userOpt.get().getUserName(), "SYSTEM", "Lead created", LocalDateTime.now());
 
-            // 7️⃣ Add History
-            if (dto.getHistory() != null && !dto.getHistory().isEmpty()) {
-                for (HistoryDTO h : dto.getHistory()) {
-                    lead.addHistory(
-                            h.getRole(),
-                            h.getAction(),
-                            h.getAssignedId(),
-                            h.getAssignedName(),
-                            h.getUpdatedBy(),
-                            h.getReason(),
-                            h.getTimestamp() != null ? h.getTimestamp() : LocalDateTime.now()
-                    );
-                }
-            } else {
-                lead.addHistory(
-                        "SYSTEM",
-                        "LEAD_CREATED",
-                        dto.getUserId(),
-                        user.getUserName(),
-                        "SYSTEM",
-                        "Lead created automatically",
-                        LocalDateTime.now()
-                );
-            }
-
-            // 8️⃣ Save lead
             leadsRepository.save(lead);
-
-            return ResponseEntity.status(201).body(lead);
+            return ResponseEntity.status(HttpStatus.CREATED).body(lead);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
 
-
-    private void assignRoleDetails(Leads lead, String roleId, String roleType) {
-        Position position = positionRepository.findFirstByRoleIdAndStatus(roleId, PositionStatus.ACTIVE);
-
-        if (position != null && position.getCurrentUser() != null) {
-            String id = String.valueOf(position.getId());
-            String name = position.getCurrentUser().getUserName();
-            String status = String.valueOf(position.getCurrentUser().getStatus());
-
-            switch (roleType) {
-                case "careHead" -> {
-                    lead.setCareHeadId(id);
-                    lead.setCareHeadName(name);
-                    lead.setCareHeadStatus(status);
-                }
-                case "careManager" -> {
-                    lead.setCareManagerId(id);
-                    lead.setCareManagerName(name);
-                    lead.setCareManagerStatus(status);
-                }
-                case "labHead" -> {
-                    lead.setLabHeadId(id);
-                    lead.setLabHeadName(name);
-                    lead.setLabHeadStatus(status);
-                }
-                case "phlebo" -> {
-                    lead.setPhleboId(id);
-                    lead.setPhleboName(name);
-                    lead.setPhleboStatus(status);
-                }
-                case "runner" -> {
-                    lead.setRunnerId(id);
-                    lead.setRunnerName(name);
-                    lead.setRunnerStatus(status);
-                }
-            }
-        }
-    }
-
-
-
-    // ------------------------------------------
+    // ------------------------------------------------------------
     // GET ALL LEADS
-    // ------------------------------------------
+    // ------------------------------------------------------------
     @Override
     public List<Leads> getAllLeads() {
         return leadsRepository.findAll();
     }
 
-    // ------------------------------------------
-    // GET SINGLE LEAD
-    // ------------------------------------------
+    // ------------------------------------------------------------
+    // GET SINGLE LEAD BY ID
+    // ------------------------------------------------------------
     @Override
     public ResponseEntity<?> getLead(String id) {
         return leadsRepository.findById(id)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.badRequest().body(Map.of("message", "Lead not found")));
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Lead not found")));
     }
 
-    // ------------------------------------------
+    // ------------------------------------------------------------
     // GET LEADS BY MOBILE
-    // ------------------------------------------
+    // ------------------------------------------------------------
     @Override
     public List<Leads> getLeadsByMobile(String mobile) {
-        try {
-            return leadsRepository.findByUser_MobileNumber((mobile));
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid mobile number");
-        }
+        return leadsRepository.findByUser_MobileNumber(mobile);
     }
 
-    // ------------------------------------------
+    // ------------------------------------------------------------
     // DELETE LEAD
-    // ------------------------------------------
+    // ------------------------------------------------------------
     @Override
     public ResponseEntity<?> deleteLead(String id) {
-        if (!leadsRepository.existsById(id)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Lead not found"));
-        }
+        if (!leadsRepository.existsById(id))
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Lead not found"));
         leadsRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("message", "Lead deleted successfully"));
     }
 
-    // ------------------------------------------
-    // UNUSED (you can extend these later)
-    // ------------------------------------------
+    // ------------------------------------------------------------
+    // FILTER LEADS
+    // ------------------------------------------------------------
     @Override
     public ResponseEntity<?> filterLeads(Map<String, String> filters) {
-        try {
-            // 1️⃣ Fetch all leads
-            List<Leads> allLeads = leadsRepository.findAll();
+        List<Leads> leads = leadsRepository.findAll();
+        Stream<Leads> stream = leads.stream();
 
-            // 2️⃣ Start stream for filtering
-            Stream<Leads> stream = allLeads.stream();
+        if (filters.containsKey("bookingStatus"))
+            stream = stream.filter(l -> filters.get("bookingStatus").equalsIgnoreCase(l.getBookingStatus()));
+        if (filters.containsKey("careManagerId"))
+            stream = stream.filter(l -> filters.get("careManagerId").equalsIgnoreCase(l.getCareManagerId()));
+        if (filters.containsKey("userId"))
+            stream = stream.filter(l -> filters.get("userId").equalsIgnoreCase(l.getUserId()));
 
-            // 3️⃣ Apply filters dynamically
-            if (filters.containsKey("bookingStatus")) {
-                String bookingStatus = filters.get("bookingStatus");
-                stream = stream.filter(l -> bookingStatus.equalsIgnoreCase(l.getBookingStatus()));
-            }
-
-            if (filters.containsKey("careManagerName")) {
-                String careManagerName = filters.get("careManagerName");
-                stream = stream.filter(l -> careManagerName.equalsIgnoreCase(l.getCareManagerName()));
-            }
-
-            if (filters.containsKey("runnerStatus")) {
-                String runnerStatus = filters.get("runnerStatus");
-                stream = stream.filter(l -> runnerStatus.equalsIgnoreCase(l.getRunnerStatus()));
-            }
-
-            if (filters.containsKey("phleboStatus")) {
-                String phleboStatus = filters.get("phleboStatus");
-                stream = stream.filter(l -> phleboStatus.equalsIgnoreCase(l.getPhleboStatus()));
-            }
-
-            if (filters.containsKey("careHeadStatus")) {
-                String careHeadStatus = filters.get("careHeadStatus");
-                stream = stream.filter(l -> careHeadStatus.equalsIgnoreCase(l.getCareHeadStatus()));
-            }
-
-            if (filters.containsKey("careManagerStatus")) {
-                String careManagerStatus = filters.get("careManagerStatus");
-                stream = stream.filter(l -> careManagerStatus.equalsIgnoreCase(l.getCareManagerStatus()));
-            }
-
-            if (filters.containsKey("labHeadStatus")) {
-                String labHeadStatus = filters.get("labHeadStatus");
-                stream = stream.filter(l -> labHeadStatus.equalsIgnoreCase(l.getLabHeadStatus()));
-            }
-
-            if (filters.containsKey("userId")) {
-                String userId = filters.get("userId");
-                stream = stream.filter(l -> userId.equalsIgnoreCase(l.getUserId()));
-            }
-
-            // 4️⃣ Collect results
-            List<Leads> filteredLeads = stream.toList();
-
-            // 5️⃣ Return response
-            if (filteredLeads.isEmpty()) {
-                return ResponseEntity.ok(Map.of("message", "No leads found for the given filters"));
-            }
-
-            return ResponseEntity.ok(filteredLeads);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("message", e.getMessage()));
-        }
+        List<Leads> filtered = stream.toList();
+        if (filtered.isEmpty())
+            return ResponseEntity.ok(Map.of("message", "No leads found"));
+        return ResponseEntity.ok(filtered);
     }
 
-
+    // ------------------------------------------------------------
+    // STATUS COUNTS
+    // ------------------------------------------------------------
     @Override
     public ResponseEntity<?> getStatusCounts(Map<String, String> request) {
-        // 1️⃣ Fetch all leads
         List<Leads> leads = leadsRepository.findAll();
 
-        // 2️⃣ Apply optional filters
         if (request.containsKey("userId")) {
-            String userId = request.get("userId");
             leads = leads.stream()
-                    .filter(l -> l.getUserId() != null && l.getUserId().equalsIgnoreCase(userId))
+                    .filter(l -> request.get("userId").equalsIgnoreCase(l.getUserId()))
                     .toList();
         }
 
-        if (request.containsKey("careManagerId")) {
-            String careManagerId = request.get("careManagerId");
-            leads = leads.stream()
-                    .filter(l -> l.getCareManagerId() != null && l.getCareManagerId().equalsIgnoreCase(careManagerId))
-                    .toList();
-        }
-
-        if (request.containsKey("bookingStatus")) {
-            String bookingStatus = request.get("bookingStatus");
-            leads = leads.stream()
-                    .filter(l -> l.getBookingStatus() != null && l.getBookingStatus().equalsIgnoreCase(bookingStatus))
-                    .toList();
-        }
-
-        // 3️⃣ Group by bookingStatus and count
         Map<String, Long> statusCounts = leads.stream()
                 .collect(Collectors.groupingBy(
                         l -> l.getBookingStatus() == null ? "UNKNOWN" : l.getBookingStatus(),
                         Collectors.counting()
                 ));
 
-        // 4️⃣ Return as JSON response
         return ResponseEntity.ok(statusCounts);
     }
 
-
+    // ------------------------------------------------------------
+    // UPDATE LEAD
+    // ------------------------------------------------------------
     @Override
     public ResponseEntity<?> updateLead(Long phone, String leadId, Map<String, Object> updateData) {
+        Optional<Leads> optionalLead = leadsRepository.findById(leadId);
+        if (optionalLead.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Lead not found"));
+
+        Leads lead = optionalLead.get();
+
+        updateData.forEach((key, value) -> {
+            switch (key) {
+                case "bookingStatus" -> lead.setBookingStatus((String) value);
+                case "paymentAmount" -> lead.setPaymentAmount(Double.valueOf(value.toString()));
+                case "bookingAddress" -> lead.setBookingAddress((String) value);
+                case "patientNote" -> lead.setPatientNote((String) value);
+            }
+        });
+
+        lead.setLastUpdated(LocalDateTime.now());
+        leadsRepository.save(lead);
+
+        return ResponseEntity.ok(Map.of("message", "Lead updated successfully", "leadId", lead.getId()));
+    }
+
+    // ------------------------------------------------------------
+    // CONFIRM LEAD (PATCH /confirm/{id})
+    // ------------------------------------------------------------
+    @Override
+    public ResponseEntity<?> confirmLead(String id) {
+        Optional<Leads> optLead = leadsRepository.findById(id);
+        if (optLead.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Lead not found"));
+
+        Leads lead = optLead.get();
+        lead.setBookingStatus("CONFIRMED");
+        lead.setLastUpdated(LocalDateTime.now());
+        leadsRepository.save(lead);
+
+        return ResponseEntity.ok(Map.of("message", "Lead confirmed successfully", "leadId", id));
+    }
+
+    // ------------------------------------------------------------
+    // ASSIGN CARE MANAGER
+    // ------------------------------------------------------------
+    @Override
+    public ResponseEntity<?> assignCareManager(Map<String, Object> body) {
+        return assignGenericRole(body, "CARE_MANAGER");
+    }
+
+    // ------------------------------------------------------------
+    // ASSIGN PHLEBO
+    // ------------------------------------------------------------
+    @Override
+    public ResponseEntity<?> assignPhlebo(Map<String, Object> body) {
+        return assignGenericRole(body, "PHLEBO");
+    }
+
+    // ------------------------------------------------------------
+    // ASSIGN RUNNER
+    // ------------------------------------------------------------
+    @Override
+    public ResponseEntity<?> assignRunner(Map<String, Object> body) {
+        return assignGenericRole(body, "RUNNER");
+    }
+
+    // ------------------------------------------------------------
+    // GENERIC ASSIGNMENT HELPER
+    // ------------------------------------------------------------
+    private ResponseEntity<?> assignGenericRole(Map<String, Object> body, String roleType) {
         try {
-            // 1️⃣ Find the lead by ID
-            Optional<Leads> optionalLead = leadsRepository.findById(leadId);
-            if (optionalLead.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", "Lead not found with ID: " + leadId));
-            }
+            String leadId = (String) body.get("leadId");
+            String assignedId = (String) body.get("assignedId");
+            if (leadId == null || assignedId == null)
+                return ResponseEntity.badRequest().body(Map.of("message", "leadId and assignedId are required"));
 
-            Leads lead = optionalLead.get();
+            Optional<Leads> optLead = leadsRepository.findById(leadId);
+            if (optLead.isEmpty())
+                return ResponseEntity.status(404).body(Map.of("message", "Lead not found"));
 
-            // 2️⃣ Optional: Verify phone belongs to this lead's user
-            if (phone != null) {
-                AppUser user = lead.getUser();
-                if (user != null && user.getMobileNumber() != null) {
-                    if (!String.valueOf(user.getMobileNumber()).equals(String.valueOf(phone))) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("message", "Phone number not authorized to update this lead"));
-                    }
+            Optional<AppUser> optUser = userRepository.findById(assignedId);
+            if (optUser.isEmpty())
+                return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+
+            Leads lead = optLead.get();
+            AppUser user = optUser.get();
+
+            switch (roleType) {
+                case "CARE_MANAGER" -> {
+                    lead.setCareManagerId(user.getId());
+                    lead.setCareManagerName(user.getUserName());
+                    lead.setCareManagerStatus("ASSIGNED");
+                }
+                case "PHLEBO" -> {
+                    lead.setPhleboId(user.getId());
+                    lead.setPhleboName(user.getUserName());
+                    lead.setPhleboStatus("ASSIGNED");
+                }
+                case "RUNNER" -> {
+                    lead.setRunnerId(user.getId());
+                    lead.setRunnerName(user.getUserName());
+                    lead.setRunnerStatus("ASSIGNED");
                 }
             }
 
-            // 3️⃣ Dynamically update fields from request body
-            updateData.forEach((key, value) -> {
-                switch (key) {
-                    case "bookingStatus" -> lead.setBookingStatus((String) value);
-                    case "careManagerStatus" -> lead.setCareManagerStatus((String) value);
-                    case "phleboStatus" -> lead.setPhleboStatus((String) value);
-                    case "runnerStatus" -> lead.setRunnerStatus((String) value);
-                    case "paymentAmount" -> lead.setPaymentAmount(Double.parseDouble(value.toString()));
-                    case "bookingAddress" -> lead.setBookingAddress((String) value);
-                    case "patientNote" -> lead.setPatientNote((String) value);
-                    case "careHeadStatus" -> lead.setCareHeadStatus((String) value);
-                    case "labHeadStatus" -> lead.setLabHeadStatus((String) value);
-                    default -> System.out.println("⚠️ Ignored unknown field: " + key);
-                }
-            });
-
-            // 4️⃣ Update timestamp
             lead.setLastUpdated(LocalDateTime.now());
-
-            // 5️⃣ Save lead
             leadsRepository.save(lead);
 
             return ResponseEntity.ok(Map.of(
-                    "message", "Lead updated successfully",
+                    "message", roleType + " assigned successfully",
                     "leadId", lead.getId(),
+                    "assignedTo", user.getUserName(),
                     "updatedAt", lead.getLastUpdated()
             ));
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Failed to update lead", "details", e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
+
+
     }
-
-
+    // ------------------------------------------------------------
+// UPDATE PHLEBO LOCATION
+// ------------------------------------------------------------
     @Override
-    public ResponseEntity<?> assignCareManager(Map<String, Object> body) {
+    public ResponseEntity<?> updatePhleboLocation(String id, Map<String, Object> bookingDTO) {
         try {
-            // 1️⃣ Extract required fields from request body
-            String leadId = (String) body.get("leadId");
-            String careManagerId = (String) body.get("careManagerId");
-            String updatedBy = (String) body.getOrDefault("updatedBy", "SYSTEM");
-            String reason = (String) body.getOrDefault("reason", "Assigned via API");
-
-            // 2️⃣ Validate input
-            if (leadId == null || careManagerId == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "message", "leadId and careManagerId are required"
-                ));
+            Optional<Leads> optLead = leadsRepository.findById(id);
+            if (optLead.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Lead not found"));
             }
 
-            // 3️⃣ Find Lead
-            Optional<Leads> optionalLead = leadsRepository.findById(leadId);
-            if (optionalLead.isEmpty()) {
-                return ResponseEntity.status(404).body(Map.of("message", "Lead not found"));
+            Leads lead = optLead.get();
+
+            // Try several common keys for coordinates
+            Double lat = null;
+            Double lng = null;
+
+            // 1) phleboLat / phleboLng (preferred)
+            if (bookingDTO.containsKey("phleboLat") || bookingDTO.containsKey("phleboLng")) {
+                Object latObj = bookingDTO.get("phleboLat");
+                Object lngObj = bookingDTO.get("phleboLng");
+                if (latObj != null) lat = Double.parseDouble(latObj.toString());
+                if (lngObj != null) lng = Double.parseDouble(lngObj.toString());
             }
 
-            Leads lead = optionalLead.get();
-
-            // 4️⃣ Find Care Manager (AppUser)
-            Optional<AppUser> optionalManager = userRepository.findById(careManagerId);
-            if (optionalManager.isEmpty()) {
-                return ResponseEntity.status(404).body(Map.of("message", "Care Manager not found"));
+            // 2) fallback to lat / lng
+            if ((lat == null || lng == null) && (bookingDTO.containsKey("lat") || bookingDTO.containsKey("lng"))) {
+                Object latObj = bookingDTO.get("lat");
+                Object lngObj = bookingDTO.get("lng");
+                if (latObj != null) lat = Double.parseDouble(latObj.toString());
+                if (lngObj != null) lng = Double.parseDouble(lngObj.toString());
             }
 
-            AppUser manager = optionalManager.get();
+            if (lat == null || lng == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Latitude and longitude required (phleboLat/phleboLng or lat/lng)"));
+            }
 
-            // 5️⃣ Assign care manager details to lead
-            lead.setCareManagerId(manager.getId());
-            lead.setCareManagerName(manager.getFirstName() + " " + manager.getLastName());
-            lead.setCareManagerStatus("ASSIGNED");
+            // Update the lead. Your Leads entity previously used setLat/setLng — reuse those.
+            lead.setLat(lat);
+            lead.setLng(lng);
+
+            // Optionally update phlebo status if provided
+            if (bookingDTO.containsKey("phleboStatus")) {
+                Object statusObj = bookingDTO.get("phleboStatus");
+                if (statusObj != null) lead.setPhleboStatus(statusObj.toString());
+            }
+
+            // Add a history entry if possible (you have addHistory helper in Leads)
+            String updatedBy = (String) bookingDTO.getOrDefault("updatedBy", "PHLEBO_SYSTEM");
+            String reason = (String) bookingDTO.getOrDefault("reason", "Phlebo location update");
+            String assignedId = (String) bookingDTO.getOrDefault("phleboId", lead.getPhleboId());
+            String assignedName = (String) bookingDTO.getOrDefault("phleboName", lead.getPhleboName());
+
+            // Use current time if not provided
+            LocalDateTime when = bookingDTO.containsKey("timestamp") ?
+                    LocalDateTime.parse(bookingDTO.get("timestamp").toString()) : LocalDateTime.now();
+
+            // history role/action names follow your pattern earlier
+            lead.addHistory("PHLEBO", "UPDATE_LOCATION", assignedId, assignedName, updatedBy, reason, when);
+
             lead.setLastUpdated(LocalDateTime.now());
 
-//            // 6️⃣ Optionally: add history (if your Leads entity has a history list)
-//            if (lead.getHistory() != null) {
-//                lead.getHistory().add("Assigned to " + lead.getCareManagerName() + " by " + updatedBy);
-//            }
-
-            // 7️⃣ Save changes
             leadsRepository.save(lead);
 
-            // 8️⃣ Response
             return ResponseEntity.ok(Map.of(
-                    "message", "Care Manager assigned successfully",
+                    "message", "Phlebo location updated successfully",
                     "leadId", lead.getId(),
-                    "careManagerId", manager.getId(),
-                    "careManagerName", lead.getCareManagerName(),
+                    "lat", lat,
+                    "lng", lng,
                     "updatedAt", lead.getLastUpdated()
             ));
-
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));

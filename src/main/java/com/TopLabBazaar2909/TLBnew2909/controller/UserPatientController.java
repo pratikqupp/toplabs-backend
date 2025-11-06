@@ -22,14 +22,14 @@ public class UserPatientController {
 
     //  Get all patients
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping
+    @GetMapping("/getalluser")
     public ResponseEntity<List<UserPatient>> getAllUsers() {
         return ResponseEntity.ok(userPatientService.getAllUsers());
     }
 
     //  Get patient by phone
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/{phone}")
+    @GetMapping("/:mobilenumber")
     public ResponseEntity<UserPatient> getUserByPhone(@PathVariable String phone) {
         Optional<UserPatient> user = userPatientService.getUserByPhone(phone);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -37,7 +37,7 @@ public class UserPatientController {
 
     //  Create new patient (or update if phone exists)
    //@PreAuthorize("isAuthenticated()")
-    @PostMapping("/create-or-update")
+    @PostMapping("/createuser")
     public ResponseEntity<UserPatientDTO> createOrUpdateUser(@RequestBody UserPatientDTO userDTO) {
         UserPatientDTO savedUser = userPatientService.createOrUpdateUser(userDTO);
         return ResponseEntity.ok(savedUser);
@@ -45,7 +45,7 @@ public class UserPatientController {
 
     // Update patient by phone
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{phone}")
+    @PutMapping("/:mobilenumber")
     public ResponseEntity<UserPatient> updateUser(@PathVariable String phone,
                                                   @RequestBody UserPatient updateUser) {
         Optional<UserPatient> updated = userPatientService.updateUser(phone, updateUser);
@@ -54,7 +54,7 @@ public class UserPatientController {
 
     //  Delete patient by phone
    //@PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/{phone}")
+    @DeleteMapping("/:mobilenumber")
     @Transactional
     public ResponseEntity<String> deleteUser(@PathVariable String phone) {
         boolean deleted = userPatientService.deleteUserByPhone(phone);

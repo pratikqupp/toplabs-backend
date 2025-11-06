@@ -12,19 +12,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/auth-team-services/team")
 public class UserController {
     @Autowired
     private UserService userService;
 
 
-    @GetMapping
+    @GetMapping("/getalluser")
     public ResponseEntity<List<AppUser>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
 
-    @PostMapping
+    @PostMapping("/createUser")
     public ResponseEntity<AppUser> createUser(@RequestBody UserTeamDTO userDTO) {
         AppUser createdUser = userService.createUser(userDTO);
         return ResponseEntity.ok(createdUser);
@@ -32,7 +32,7 @@ public class UserController {
 
 
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{id}")
+    @PutMapping("/:id")
     public ResponseEntity<AppUser> updateUser(@PathVariable String id, @RequestBody UserTeam userDetails) {
         AppUser updated = userService.updateUser(id, userDetails);
         if (updated == null) return ResponseEntity.notFound().build();
@@ -40,7 +40,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/{id}")
+    @GetMapping("/getUserById/:id")
     public ResponseEntity<AppUser> getUserById(@PathVariable String id) {
         AppUser user = userService.getUserById(id);
         if (user == null) return ResponseEntity.notFound().build();
@@ -48,7 +48,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/mobile/{mobile}")
+    @GetMapping("/getUserById/:id")
     public ResponseEntity<AppUser> getUserByMobile(@PathVariable String mobile) {
         AppUser user = userService.getUserByMobile(mobile);
         if (user == null) return ResponseEntity.notFound().build();
@@ -56,7 +56,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/validate/mobile/{mobile}")
+    @GetMapping("/validateUserByMobile")
     public ResponseEntity<String> validateUserByMobile(@PathVariable String mobile) {
         boolean active = userService.validateUserByMobile(mobile);
         if (active) return ResponseEntity.ok("User is active");
@@ -64,7 +64,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @PostMapping("/validate")
+    @PostMapping("/validateUser")
     public ResponseEntity<String> validateUser(@RequestParam String email,
                                                @RequestParam String password,
                                                @RequestParam String roleId,
@@ -76,7 +76,7 @@ public class UserController {
     }
 
    //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/deactivate/{id}")
+    @PutMapping("/:id/deactivate")
     public ResponseEntity<AppUser> deactivateUser(@PathVariable String id) {
         AppUser user = userService.deactivateUser(id);
         if (user == null) return ResponseEntity.notFound().build();

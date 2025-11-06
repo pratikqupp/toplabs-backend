@@ -16,12 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/roles")
+@RequestMapping("/auth-team-services/role")
 public class RoleController {
+
     @Autowired
     private DepartmentRepository departmentRepository;
+
     @Autowired
     private StatusRepository statusRepository;
+
     private final RoleService roleService;
 
     public RoleController(RoleService roleService) {
@@ -29,21 +32,23 @@ public class RoleController {
     }
 
 
-    @GetMapping
+    //@PreAuthorize("isAuthenticated()")
+    @GetMapping("/user/role/getall")
     public ResponseEntity<List<Role22>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
     }
 
-   //@PreAuthorize("isAuthenticated()")
-    @PostMapping
-    public ResponseEntity<RoleDTO> createRole(@RequestBody RoleDTO role) {
-        RoleDTO createdRole = roleService.createRole(role);
+
+    //@PreAuthorize("isAuthenticated()")
+    @PostMapping("/user/role/create")
+    public ResponseEntity<RoleDTO> createRole(@RequestBody RoleDTO roleDTO) {
+        RoleDTO createdRole = roleService.createRole(roleDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRole);
     }
 
 
-   //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{roleId}")
+    //@PreAuthorize("isAuthenticated()")
+    @PutMapping("/user/role/:id")
     public ResponseEntity<Role22> updateRole(
             @PathVariable String roleId,
             @RequestBody Role22 roleDetails,
@@ -66,8 +71,9 @@ public class RoleController {
         return ResponseEntity.ok(updated);
     }
 
-   //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{roleId}/with-department-status")
+
+    //@PreAuthorize("isAuthenticated()")
+    @PutMapping("/user/role/{roleId}/with-department-status")
     public ResponseEntity<Role22> updateRoleWithDeptAndStatus(
             @PathVariable String roleId,
             @RequestBody Role22 roleDetails,
@@ -90,9 +96,9 @@ public class RoleController {
         return ResponseEntity.ok(updated);
     }
 
-    //  Deactivate role
-   //@PreAuthorize("isAuthenticated()")
-    @PatchMapping("/{id}/deactivate")
+
+    //@PreAuthorize("isAuthenticated()")
+    @PatchMapping("/user/role/:id/deactivate")
     public ResponseEntity<String> deactivateRole(@PathVariable("id") String roleId) {
         Role22 deactivated = roleService.deactivateRole(roleId);
         if (deactivated == null) {
@@ -100,5 +106,4 @@ public class RoleController {
         }
         return ResponseEntity.ok("Role deactivated successfully");
     }
-
 }

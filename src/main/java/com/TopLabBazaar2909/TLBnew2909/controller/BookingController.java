@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/bookings")
+@RequestMapping("/booking")
 
 public class BookingController {
     private final BookingService bookingService;
@@ -26,7 +26,7 @@ public class BookingController {
 
     // get all bookings
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/getAllBookings")
+    @GetMapping("/getall")
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
@@ -40,21 +40,21 @@ public class BookingController {
 
     //  get booking by ID
    ////@PreAuthorize("isAuthenticated()")
-    @GetMapping("/{id}")
+    @GetMapping("/:bookingId")
     public ResponseEntity<BookingDTO> getBooking(@PathVariable("id") String id) {
         return ResponseEntity.ok(bookingService.getBookingById(id));
     }
 
     //  get bookings by user mobile
    ////@PreAuthorize("isAuthenticated()")
-    @GetMapping("/getbooking/bymobile/{mobile}")
+    @GetMapping("/mobile/:mobileNumber")
     public ResponseEntity<List<BookingDTO>> getBookingByMobile(@PathVariable("mobile") String mobile) {
         return ResponseEntity.ok(bookingService.getBookingsByMobile(mobile));
     }
 
     //  create booking
    ////@PreAuthorize("isAuthenticated()")
-    @PostMapping("/createbooking")
+    @PostMapping("/create")
     public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO) {
         return ResponseEntity.ok(bookingService.createBooking(bookingDTO));
     }
@@ -63,7 +63,7 @@ public class BookingController {
     //  update booking by user phone + id
    ////@PreAuthorize("isAuthenticated()")
     @PutMapping("/{phone}/{id}")
-    public ResponseEntity<BookingDTO> updateBooking(
+    public ResponseEntity<BookingDTO> updateBookingByMobile(
             @PathVariable("phone") String phone,
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -72,7 +72,7 @@ public class BookingController {
 
     //  partial update booking by id
    ////@PreAuthorize("isAuthenticated()")
-    @PatchMapping("/{id}")
+    @PatchMapping("/patch/:id")
     public ResponseEntity<BookingDTO> patchBooking(
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -81,7 +81,7 @@ public class BookingController {
 
     //  update phlebo location
    ////@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{id}/phlebo/location")
+    @PutMapping("/updatePhleboLocation/:id")
     public ResponseEntity<BookingDTO> updatePhleboLocation(
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -90,7 +90,7 @@ public class BookingController {
 
     //  update runner location
     //@PreAuthorize("isAuthenticated()")
-    @PutMapping("/{id}/runner/location")
+    @PutMapping("/updateRunnerLocation/:id")
     public ResponseEntity<BookingDTO> updateRunnerLocation(
             @PathVariable("id") String id,
             @RequestBody BookingDTO bookingDTO) {
@@ -98,8 +98,8 @@ public class BookingController {
     }
 
     //  delete booking
-   ////@PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/{id}")
+     //@PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/cancel/:id")
     public ResponseEntity<Map<String, String>> deleteBooking(@PathVariable("id") String id) {
         Map<String, String> response = bookingService.deleteBooking(id);
         return ResponseEntity.ok(response);
@@ -108,7 +108,7 @@ public class BookingController {
 
     //  Bulk assign Care Manager
    ////@PreAuthorize("isAuthenticated()")
-    @PostMapping("/assign-caremanager")
+    @PostMapping("/assignCareManager")
     public ResponseEntity<String> assignCareManager(@RequestBody List<String> ids) {
         bookingService.assignCareManager((Map<String, Object>) ids);
         return ResponseEntity.ok("Care Manager assigned successfully");
@@ -116,15 +116,15 @@ public class BookingController {
 
     //  Bulk assign Phlebo
 //@PreAuthorize("isAuthenticated()")
-    @PostMapping("/assign-phlebo")
+    @PostMapping("/assignPhlebo")
     public ResponseEntity<String> assignPhlebo(@RequestBody List<String> ids) {
         bookingService.assignPhlebo((Map<String, Object>) ids);
         return ResponseEntity.ok("Phlebo assigned successfully");
     }
 
     //  Bulk assign Runner
-   ////@PreAuthorize("isAuthenticated()")
-    @PostMapping("/assign-runner")
+   //@PreAuthorize("isAuthenticated()")
+    @PostMapping("/assignRunner")
     public ResponseEntity<String> assignRunner(@RequestBody List<String> ids) {
         bookingService.assignRunner((Map<String, Object>) ids);
         return ResponseEntity.ok("Runner assigned successfully");
@@ -132,7 +132,7 @@ public class BookingController {
 
     //  get status counts
    ////@PreAuthorize("isAuthenticated()")
-    @PostMapping("/status")
+    @PostMapping("/status-counts")
     public ResponseEntity<Object> getStatusCounts(@RequestBody BookingDTO filterRequest) {
         return ResponseEntity.ok(bookingService.getStatusCounts((Map<String, String>) filterRequest));
     }
