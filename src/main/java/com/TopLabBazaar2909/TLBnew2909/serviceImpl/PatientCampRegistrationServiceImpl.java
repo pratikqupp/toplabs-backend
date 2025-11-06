@@ -57,7 +57,7 @@ public class PatientCampRegistrationServiceImpl implements PatientCampRegistrati
         registration.setDob(dto.getDob());
         registration.setAge(dto.getAge());
 
-        // ✅ 3. Manual ID generation (e.g., PCR001, PCR002, PCR003, ...)
+        //3. Manual ID generation (e.g., PCR001, PCR002, PCR003, ...)
         String lastId = patientCampRegistrationRepository.findTopByOrderByIdDesc()
                 .map(PatientCampRegistration::getId)
                 .orElse("PCR000");
