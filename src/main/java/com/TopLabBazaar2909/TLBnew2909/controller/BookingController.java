@@ -47,7 +47,7 @@ public class BookingController {
 
     //  get bookings by user mobile
    ////@PreAuthorize("isAuthenticated()")
-    @GetMapping("/mobile/:mobileNumber")
+    @GetMapping("/mobile/{/mobilenumber}")
     public ResponseEntity<List<BookingDTO>> getBookingByMobile(@PathVariable("mobile") String mobile) {
         return ResponseEntity.ok(bookingService.getBookingsByMobile(mobile));
     }

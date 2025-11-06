@@ -75,21 +75,21 @@ public class FilterController {
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/position/department/:departmentId")
+    @GetMapping("/user/filter/position/department/{departmentId}")
     public ResponseEntity<List<PositionDTO>> getPositionsByDepartment(@PathVariable String departmentId) {
         return ResponseEntity.ok(positionService.getPositionsByDepartment(departmentId));
     }
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/position/department/:departmentId")
+    @GetMapping("/user/filter/position/department/{departmentId}")
     public ResponseEntity<List<PositionDTO>> getPositionsByRole(@PathVariable String roleId) {
         return ResponseEntity.ok(positionService.getPositionsByRole(roleId));
     }
 
 
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/position/deptrole/:departmentId/:roleId")
+    @GetMapping("/user/filter/position/deptrole/:departmentId/{roleId}")
     public ResponseEntity<List<PositionDTO>> getPositionsByDeptAndRole(@PathVariable String departmentId,
                                                                     @PathVariable String roleId) {
         return ResponseEntity.ok(positionService.getPositionsByDeptRole(departmentId, roleId));
@@ -100,17 +100,17 @@ public class FilterController {
         return ResponseEntity.ok(hierarchyService.getUsersByDepartment(departmentId));
     }
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/user/role/:roleId")
+    @GetMapping("/user/filter/user/role/{roleId}")
     public ResponseEntity<List<UserTeamDTO>> getUsersByRole(@PathVariable String roleId) {
         return ResponseEntity.ok(hierarchyService.getUsersByRole(roleId));
     }
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/user/position/:positionId")
+    @GetMapping("/user/filter/user/position/{positionId}")
     public ResponseEntity<List<UserTeamDTO>> getUsersByPosition(@PathVariable String positionId) {
         return ResponseEntity.ok(hierarchyService.getUsersByPosition(positionId));
     }
     //@PreAuthorize("isAuthenticated()")
-    @GetMapping("/user/filter/role/department/:departmentId")
+    @GetMapping("/user/filter/role/department/{departmentId}")
     public ResponseEntity<List<RoleDTO>> getRolesByDepartment(@PathVariable String departmentId) {
         return ResponseEntity.ok(hierarchyService.getRolesByDepartment(departmentId));
     }
