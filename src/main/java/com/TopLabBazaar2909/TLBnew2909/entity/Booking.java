@@ -17,7 +17,6 @@ import java.util.List;
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     // USER
