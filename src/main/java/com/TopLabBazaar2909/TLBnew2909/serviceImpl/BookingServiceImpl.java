@@ -152,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
         // Save updated booking
         Booking updated = bookingRepository.save(booking);
 
-        // Map entity to DTO using ModelMapper
+        //Map entity to DTO using ModelMapper
         return modelMapper.map(updated, BookingDTO.class);
     }
 

@@ -144,7 +144,7 @@ public class BookingController {
     }
 
     // ------------------------------------------------------------
-    // 2️⃣ CONFIRM BOOKING (Leads → Booking)
+    //  CONFIRM BOOKING (Leads → Booking)
     // ------------------------------------------------------------
     @PostMapping("/confirm/{leadId}")
     public ResponseEntity<Object> confirmBooking(@PathVariable("leadId") String leadId) {
