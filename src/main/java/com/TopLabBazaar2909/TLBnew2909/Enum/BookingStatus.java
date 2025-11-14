@@ -1,6 +1,0 @@
-package com.TopLabBazaar2909.TLBnew2909.Enum;
-
-public enum BookingStatus {
-    INTERESTED, CREATED, CONFIRMED, SAMPLE_COLLECTED, IN_PROGRESS, COMPLETED, CANCELLED
-
-}
