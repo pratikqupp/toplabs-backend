@@ -1,5 +1,6 @@
 package com.TopLabBazaar2909.TLBnew2909.dto;
 
+import com.TopLabBazaar2909.TLBnew2909.entity.LabPrice;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,10 +12,13 @@ import java.util.List;
 public class LeadsDTO {
     private String id;
     private String userId;
-    private List<String> labs;
+    //private List<String> labs;
     private String patientNote;
     private String bookingAddress;
     private Double paymentAmount;
+
+    private List<LabPrice> labs;
+
 
     private String careHeadId;
     private String careHeadName;

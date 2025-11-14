@@ -114,6 +114,12 @@ public class BookingController {
         return ResponseEntity.ok("Care Manager assigned successfully");
     }
 
+    @PostMapping("/unassignCareManager")
+    public ResponseEntity<String> unassignCareManager(@RequestBody Map<String, Object> body) {
+        bookingService.unassignCareManager(body);
+        return ResponseEntity.ok("Care Manager unassigned successfully");
+    }
+
     //  Bulk assign Phlebo
 //@PreAuthorize("isAuthenticated()")
     @PostMapping("/assignPhlebo")
@@ -135,5 +141,13 @@ public class BookingController {
     @PostMapping("/status-counts")
     public ResponseEntity<Object> getStatusCounts(@RequestBody BookingDTO filterRequest) {
         return ResponseEntity.ok(bookingService.getStatusCounts((Map<String, String>) filterRequest));
+    }
+
+    // ------------------------------------------------------------
+    // 2️⃣ CONFIRM BOOKING (Leads → Booking)
+    // ------------------------------------------------------------
+    @PostMapping("/confirm/{leadId}")
+    public ResponseEntity<Object> confirmBooking(@PathVariable("leadId") String leadId) {
+        return ResponseEntity.ok(bookingService.confirmBooking(leadId));
     }
 }

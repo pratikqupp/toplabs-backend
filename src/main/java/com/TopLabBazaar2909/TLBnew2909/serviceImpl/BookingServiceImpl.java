@@ -335,4 +335,36 @@ public class BookingServiceImpl implements BookingService {
             return Map.of("error", e.getMessage());
         }
     }
+
+    @Override
+    public Map<String, Object> confirmBooking(String leadId) {
+        try {
+            // TODO: Replace this with actual LeadService + LeadRepository
+            // Fetch lead data using FEIGN or repository
+            // Example:
+            // Lead lead = leadRepository.findById(leadId).orElseThrow(() -> new RuntimeException("Lead not found"));
+
+            // For now, assume lead exists — replace after you implement Lead module mapping
+            Booking booking = new Booking();
+            booking.setLeadId(leadId);
+
+            // Default booking details
+            booking.setBookingCreationDate(LocalDateTime.now());
+            booking.setBookingStatus(BookingStatus.CONFIRMED);
+            booking.setPaymentStatus(PaymentStatus.PENDING);
+            booking.setCareHeadStatus(CareHeadStatus.NONE);
+            booking.setUpdatedAt(LocalDateTime.now());
+
+            Booking saved = bookingRepository.save(booking);
+
+            return Map.of(
+                    "message", "Booking created from lead successfully",
+                    "booking", modelMapper.map(saved, BookingDTO.class)
+            );
+
+        } catch (Exception e) {
+            return Map.of("error", e.getMessage());
+        }
+    }
+
 }

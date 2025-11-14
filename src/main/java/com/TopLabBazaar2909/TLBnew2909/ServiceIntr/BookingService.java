@@ -40,4 +40,6 @@ public interface BookingService {
 
 
     Map<String, Object> unassignCareManager(Map<String, Object> body);
+
+    Object confirmBooking(String leadId);
 }

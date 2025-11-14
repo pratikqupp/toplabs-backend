@@ -16,24 +16,35 @@ public class History {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Primary key
+    private Long id;
 
+    // What action happened (ASSIGNED, UPDATED, CREATED)
     @Column(nullable = false)
-    private String action; // e.g., LEAD_CREATED, ASSIGNED, UPDATED, etc.
+    private String action;
 
-    private String createdByRole;   // Who performed the action (e.g., SYSTEM, CareManager)
-    private String userId;          // ID of user who triggered the change
-    private String oldValue;        // Old status/value (optional)
-    private String newValue;        // New status/value (optional)
-    private String reason;          // Optional reason or note
+    // Who performed the action (CareManager, LabHead, Phlebo etc.)
+    private String role;
 
+    // Assigned person ID
+    private String assignedId;
+
+    // Assigned person's name
+    private String assignedName;
+
+    // Which user/system updated
+    private String updatedBy;
+
+    // Reason for change (optional)
+    private String reason;
+
+    // Timestamp
     @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now(); // Auto-timestamp
+    private LocalDateTime timestamp = LocalDateTime.now();
 
     // ------------------- Relationships -------------------
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lead_id", nullable = false)  // matches 'lead' in Leads entity
+    @JoinColumn(name = "lead_id", nullable = false)
     private Leads lead;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -107,6 +107,22 @@ public class LeadsController {
         return leadsService.assignCareManager(body);
     }
 
+    // ------------------------------------------------------------
+    // UNASSIGN CARE MANAGER  (NEW)
+    // ------------------------------------------------------------
+    @PostMapping("/unassign-care-manager")
+    public ResponseEntity<?> unassignCareManager(@RequestBody Map<String, Object> request) {
+        return leadsService.unassignCareManager(request);
+    }
+
+    // ------------------------------------------------------------
+    // CONFIRM BOOKING (Lead → Booking)  (NEW)
+    // ------------------------------------------------------------
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmBooking(@RequestBody Map<String, Object> request) {
+        return leadsService.confirmBooking(request);
+    }
+
     @PostMapping("/assign-runner")
     public ResponseEntity<String> assignRunner(@RequestBody List<String> ids) {
         leadsService.assignRunner((Map<String, Object>) ids);
@@ -125,4 +141,6 @@ public class LeadsController {
             @RequestBody BookingDTO bookingDTO) {
         return ResponseEntity.ok(leadsService.updatePhleboLocation(id, (Map<String, Object>) bookingDTO));
     }
+
+
 }

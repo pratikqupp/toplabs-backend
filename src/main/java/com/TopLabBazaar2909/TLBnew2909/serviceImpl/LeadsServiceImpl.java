@@ -1,11 +1,13 @@
 package com.TopLabBazaar2909.TLBnew2909.serviceImpl;
 
+import com.TopLabBazaar2909.TLBnew2909.Enum.BookingStatus;
+import com.TopLabBazaar2909.TLBnew2909.Enum.CareManagerStatus;
+import com.TopLabBazaar2909.TLBnew2909.Enum.PhleboStatus;
+import com.TopLabBazaar2909.TLBnew2909.Enum.RunnerStatus;
 import com.TopLabBazaar2909.TLBnew2909.ServiceIntr.LeadsService;
-import com.TopLabBazaar2909.TLBnew2909.dto.HistoryDTO;
 import com.TopLabBazaar2909.TLBnew2909.dto.LeadsDTO;
 import com.TopLabBazaar2909.TLBnew2909.entity.AppUser;
 import com.TopLabBazaar2909.TLBnew2909.entity.Leads;
-import com.TopLabBazaar2909.TLBnew2909.entity.Position;
 import com.TopLabBazaar2909.TLBnew2909.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,15 +55,21 @@ public class LeadsServiceImpl implements LeadsService {
             lead.setUser(userOpt.get());
             lead.setBookingAddress(dto.getBookingAddress());
             lead.setPaymentAmount(dto.getPaymentAmount());
-            lead.setBookingStatus(dto.getBookingStatus() != null ? dto.getBookingStatus() : "INTERESTED");
+            lead.setBookingStatus(BookingStatus.valueOf(dto.getBookingStatus() != null ? dto.getBookingStatus() : "INTERESTED"));
             lead.setBookingCreationDate(LocalDateTime.now());
             lead.setPatientNote(dto.getPatientNote());
             lead.setLastUpdated(LocalDateTime.now());
             lead.setLabs(dto.getLabs());
 
             // Default history entry
-            lead.addHistory("SYSTEM", "LEAD_CREATED", dto.getUserId(),
-                    userOpt.get().getUserName(), "SYSTEM", "Lead created", LocalDateTime.now());
+            lead.addHistory(
+                    "LEAD_CREATED",
+                    "SYSTEM",
+                    dto.getUserId(),
+                    userOpt.get().getUserName(),
+                    "SYSTEM",
+                    "Lead created",
+                    LocalDateTime.now().toString());
 
             leadsRepository.save(lead);
             return ResponseEntity.status(HttpStatus.CREATED).body(lead);
@@ -120,7 +128,7 @@ public class LeadsServiceImpl implements LeadsService {
         Stream<Leads> stream = leads.stream();
 
         if (filters.containsKey("bookingStatus"))
-            stream = stream.filter(l -> filters.get("bookingStatus").equalsIgnoreCase(l.getBookingStatus()));
+            stream = stream.filter(l -> filters.get("bookingStatus").equalsIgnoreCase(String.valueOf(l.getBookingStatus())));
         if (filters.containsKey("careManagerId"))
             stream = stream.filter(l -> filters.get("careManagerId").equalsIgnoreCase(l.getCareManagerId()));
         if (filters.containsKey("userId"))
@@ -147,9 +155,10 @@ public class LeadsServiceImpl implements LeadsService {
 
         Map<String, Long> statusCounts = leads.stream()
                 .collect(Collectors.groupingBy(
-                        l -> l.getBookingStatus() == null ? "UNKNOWN" : l.getBookingStatus(),
+                        l -> l.getBookingStatus() == null ? "UNKNOWN" : l.getBookingStatus().name(),
                         Collectors.counting()
                 ));
+
 
         return ResponseEntity.ok(statusCounts);
     }
@@ -167,7 +176,7 @@ public class LeadsServiceImpl implements LeadsService {
 
         updateData.forEach((key, value) -> {
             switch (key) {
-                case "bookingStatus" -> lead.setBookingStatus((String) value);
+                case "bookingStatus" -> lead.setBookingStatus(BookingStatus.valueOf((String) value));
                 case "paymentAmount" -> lead.setPaymentAmount(Double.valueOf(value.toString()));
                 case "bookingAddress" -> lead.setBookingAddress((String) value);
                 case "patientNote" -> lead.setPatientNote((String) value);
@@ -190,7 +199,7 @@ public class LeadsServiceImpl implements LeadsService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Lead not found"));
 
         Leads lead = optLead.get();
-        lead.setBookingStatus("CONFIRMED");
+        lead.setBookingStatus(BookingStatus.valueOf("CONFIRMED"));
         lead.setLastUpdated(LocalDateTime.now());
         leadsRepository.save(lead);
 
@@ -246,17 +255,17 @@ public class LeadsServiceImpl implements LeadsService {
                 case "CARE_MANAGER" -> {
                     lead.setCareManagerId(user.getId());
                     lead.setCareManagerName(user.getUserName());
-                    lead.setCareManagerStatus("ASSIGNED");
+                    lead.setCareManagerStatus(CareManagerStatus.valueOf("ASSIGNED"));
                 }
                 case "PHLEBO" -> {
                     lead.setPhleboId(user.getId());
                     lead.setPhleboName(user.getUserName());
-                    lead.setPhleboStatus("ASSIGNED");
+                    lead.setPhleboStatus(PhleboStatus.valueOf("ASSIGNED"));
                 }
                 case "RUNNER" -> {
                     lead.setRunnerId(user.getId());
                     lead.setRunnerName(user.getUserName());
-                    lead.setRunnerStatus("ASSIGNED");
+                    lead.setRunnerStatus(RunnerStatus.valueOf("ASSIGNED"));
                 }
             }
 
@@ -323,7 +332,7 @@ public class LeadsServiceImpl implements LeadsService {
             // Optionally update phlebo status if provided
             if (bookingDTO.containsKey("phleboStatus")) {
                 Object statusObj = bookingDTO.get("phleboStatus");
-                if (statusObj != null) lead.setPhleboStatus(statusObj.toString());
+                if (statusObj != null) lead.setPhleboStatus(PhleboStatus.valueOf(statusObj.toString()));
             }
 
             // Add a history entry if possible (you have addHistory helper in Leads)
@@ -337,7 +346,7 @@ public class LeadsServiceImpl implements LeadsService {
                     LocalDateTime.parse(bookingDTO.get("timestamp").toString()) : LocalDateTime.now();
 
             // history role/action names follow your pattern earlier
-            lead.addHistory("PHLEBO", "UPDATE_LOCATION", assignedId, assignedName, updatedBy, reason, when);
+            lead.addHistory("PHLEBO", "UPDATE_LOCATION", assignedId, assignedName, updatedBy, reason, String.valueOf(when));
 
             lead.setLastUpdated(LocalDateTime.now());
 
@@ -355,5 +364,103 @@ public class LeadsServiceImpl implements LeadsService {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @Override
+    public ResponseEntity<?> unassignCareManager(Map<String, Object> request) {
+        try {
+            String leadId = (String) request.get("leadId");
+            String unassignedBy = (String) request.getOrDefault("unassignedBy", "SYSTEM");
+            String reason = (String) request.getOrDefault("reason", "Care manager unassigned");
+
+            if (leadId == null)
+                return ResponseEntity.badRequest().body(Map.of("message", "leadId is required"));
+
+            Optional<Leads> optLead = leadsRepository.findById(leadId);
+            if (optLead.isEmpty())
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Lead not found"));
+
+            Leads lead = optLead.get();
+
+            // Keep data for history
+            String oldCMId = lead.getCareManagerId();
+            String oldCMName = lead.getCareManagerName();
+
+            // Remove CM assignment
+            lead.setCareManagerId(null);
+            lead.setCareManagerName(null);
+            lead.setCareManagerStatus(CareManagerStatus.valueOf("UNASSIGNED")); // use string not enum
+            lead.setLastUpdated(LocalDateTime.now());
+
+            // Add history entry (timestamp must be String)
+            lead.addHistory(
+                    "CARE_MANAGER",
+                    "UNASSIGNED",
+                    oldCMId,
+                    oldCMName,
+                    unassignedBy,
+                    reason,
+                    LocalDateTime.now().toString()   // <-- FIXED
+            );
+
+            leadsRepository.save(lead);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Care manager unassigned successfully",
+                    "leadId", leadId
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+    @Override
+    public ResponseEntity<?> confirmBooking(Map<String, Object> request) {
+        try {
+            String leadId = (String) request.get("leadId");
+            String confirmedBy = (String) request.getOrDefault("confirmedBy", "SYSTEM");
+            String reason = (String) request.getOrDefault("reason", "Lead converted to booking");
+
+            if (leadId == null)
+                return ResponseEntity.badRequest().body(Map.of("message", "leadId is required"));
+
+            Optional<Leads> optLead = leadsRepository.findById(leadId);
+            if (optLead.isEmpty())
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Lead not found"));
+
+            Leads lead = optLead.get();
+
+            // Update lead booking status
+            lead.setBookingStatus(BookingStatus.valueOf("BOOKED"));
+            lead.setLastUpdated(LocalDateTime.now());
+
+            // Add history entry
+            lead.addHistory(
+                    "LEAD",
+                    "CONFIRMED_BOOKING",
+                    lead.getUserId(),
+                    lead.getUser().getUserName(),
+                    confirmedBy,
+                    reason,
+                    String.valueOf(LocalDateTime.now())
+            );
+
+            leadsRepository.save(lead);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Booking confirmed successfully",
+                    "leadId", leadId,
+                    "status", "BOOKED"
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
 
 }

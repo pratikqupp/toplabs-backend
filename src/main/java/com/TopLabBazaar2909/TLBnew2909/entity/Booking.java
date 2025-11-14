@@ -1,123 +1,133 @@
 package com.TopLabBazaar2909.TLBnew2909.entity;
 
-import com.TopLabBazaar2909.TLBnew2909.dto.LocationDTO;
-import com.TopLabBazaar2909.TLBnew2909.embedded.Location;
+import com.TopLabBazaar2909.TLBnew2909.embedded.*;
 import com.TopLabBazaar2909.TLBnew2909.Enum.*;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "bookings")
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    // --- USER INFO ---
+    // USER
     private String userId;
     private String mobile;
 
-    // --- STATUS & NOTE ---
-    @Enumerated(EnumType.STRING)
-    private BookingStatus bookingStatus;
-
-    private String status;
-    private String patientNote;
-    private String bookingAddress;
-
-    // --- LABS ---
+    // LABS
     @ElementCollection
     @CollectionTable(name = "booking_labs", joinColumns = @JoinColumn(name = "booking_id"))
-    private List<LabPrice> labs;
+    private List<LabPrice> labs = new ArrayList<>();
 
-    // --- CARE HEAD ---
-    private String careHeadId;
-    private String careHeadName;
+    // TESTS
+    @ElementCollection
+    @CollectionTable(name = "booking_tests", joinColumns = @JoinColumn(name = "booking_id"))
+    private List<TestPrice> tests = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    private CareHeadStatus careHeadStatus;
+    private LocalDateTime bookingCreationDate = LocalDateTime.now();
+    private String patientNote = "";
+    private String bookingAddress = "";
+    private String postalCode = "";
+    private String reportUrl = "";
 
-    // --- CARE MANAGER ---
-    private String careManagerId;
-    private String careManagerName;
+    private LocalDateTime patientExpectedTime;
 
-    @Enumerated(EnumType.STRING)
-    private CareManagerStatus careManagerStatus;
+    private boolean paymentCollectedByPhlebo = false;
+    private double paymentReceivedByPhlebo = 0;
 
-    // --- LAB HEAD ---
-    private String labHeadId;
-    private String labHeadName;
-
-    @Enumerated(EnumType.STRING)
-    private LabHeadStatus labHeadStatus;
-
-    // --- PHLEBO ---
-    private String phleboId;
-    private String phleboName;
+    // CARE HEAD
+    private String careHeadId = "";
+    private String careHeadName = "";
 
     @Enumerated(EnumType.STRING)
-    private PhleboStatus phleboStatus;
+    private CareHeadStatus careHeadStatus = CareHeadStatus.INTERESTED;
+
+    // CARE MANAGER
+    private String careManagerId = "";
+    private String careManagerName = "";
+
+    @Enumerated(EnumType.STRING)
+    private CareManagerStatus careManagerStatus = CareManagerStatus.ASSIGNED;
+
+    // LAB HEAD
+    private String labHeadId = "";
+    private String labHeadName = "";
+
+    @Enumerated(EnumType.STRING)
+    private LabHeadStatus labHeadStatus = LabHeadStatus.BOOKING_CONFIRM;
+
+    // PHLEBO
+    private String phleboId = "";
+    private String phleboName = "";
+
+    @Enumerated(EnumType.STRING)
+    private PhleboStatus phleboStatus = PhleboStatus.ASSIGNED;
 
     private LocalDateTime phleboArrivalTime;
     private LocalDateTime phleboCompletionTime;
-    private String phleboNote;
+    private String phleboNote = "";
 
-    // Embedded phlebo location (using DTO-style)
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "lat", column = @Column(name = "phlebo_latitude")),
-            @AttributeOverride(name = "lng", column = @Column(name = "phlebo_longitude")),
-            @AttributeOverride(name = "lastUpdated", column = @Column(name = "phlebo_location_last_updated"))
+            @AttributeOverride(name = "lat", column = @Column(name = "phlebo_lat")),
+            @AttributeOverride(name = "lng", column = @Column(name = "phlebo_lng")),
+            @AttributeOverride(name = "lastUpdated", column = @Column(name = "phlebo_last_updated"))
     })
-    private Location phleboLocation;
+    private Location phleboLocation = new Location();
 
-    // --- RUNNER ---
-    private String runnerId;
-    private String runnerName;
+    // RUNNER
+    private String runnerId = "";
+    private String runnerName = "";
 
     @Enumerated(EnumType.STRING)
-    private RunnerStatus runnerStatus;
+    private RunnerStatus runnerStatus = RunnerStatus.ASSIGNED;
 
     private LocalDateTime runnerPickupTime;
     private LocalDateTime runnerDeliveryTime;
-    private String runnerNote;
+    private String runnerNote = "";
 
-    // Embedded runner location (avoids duplicate last_updated)
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "lat", column = @Column(name = "runner_latitude")),
-            @AttributeOverride(name = "lng", column = @Column(name = "runner_longitude")),
-            @AttributeOverride(name = "lastUpdated", column = @Column(name = "runner_location_last_updated"))
+            @AttributeOverride(name = "lat", column = @Column(name = "runner_lat")),
+            @AttributeOverride(name = "lng", column = @Column(name = "runner_lng")),
+            @AttributeOverride(name = "lastUpdated", column = @Column(name = "runner_last_updated"))
     })
-    private Location runnerLocation;
+    private Location runnerLocation = new Location();
 
-    // --- PAYMENT ---
+    // PAYMENT
     @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
-    private PaymentMethod paymentMethod;
+    private PaymentMethod paymentMethod = PaymentMethod.CASH;
 
-    private String paymentTransactionId;
-    private double paymentAmount;
+    private String paymentTransactionId = "";
+    private double paymentAmount = 0;
     private LocalDateTime paymentDate;
 
-    // --- TIMESTAMPS ---
-    private LocalDateTime bookingCreationDate;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    // BOOKING STATUS
+    @Enumerated(EnumType.STRING)
+    private BookingStatus bookingStatus = BookingStatus.INTERESTED;
 
-    // --- HISTORY ---
+    // HISTORY
     @ElementCollection
     @CollectionTable(name = "booking_history", joinColumns = @JoinColumn(name = "booking_id"))
-    private List<History> history;
+    private List<History> history = new ArrayList<>();
+
+    // TIMESTAMPS
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    public void setLeadId(String leadId) {
+    }
 }

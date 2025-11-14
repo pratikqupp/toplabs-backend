@@ -74,4 +74,10 @@ public interface LeadsService {
     // UPDATE PHLEBO LOCATION
     // ------------------------------------------------------------
     ResponseEntity<?> updatePhleboLocation(String id, Map<String, Object> bookingDTO);
+
+    ResponseEntity<?> unassignCareManager(Map<String, Object> request);
+
+    ResponseEntity<?> confirmBooking(Map<String, Object> request);
+
+
 }

@@ -1,62 +1,122 @@
 package com.TopLabBazaar2909.TLBnew2909.entity;
 
-import com.TopLabBazaar2909.TLBnew2909.embedded.Location;
+import com.TopLabBazaar2909.TLBnew2909.Enum.*;
+import com.TopLabBazaar2909.TLBnew2909.embedded.*;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "leads")
-@Data
+@Table(
+        name = "leads",
+        indexes = {
+                @Index(columnList = "careHeadStatus"),
+                @Index(columnList = "careManagerStatus"),
+                @Index(columnList = "labHeadStatus"),
+                @Index(columnList = "phleboStatus"),
+                @Index(columnList = "runnerStatus"),
+                @Index(columnList = "bookingStatus"),
+                @Index(columnList = "paymentStatus"),
+                @Index(columnList = "createdAt")
+        }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Leads {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "user_reference_id")
+    // ------------------------------
+    // User
+    // ------------------------------
     private String userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private AppUser user;
-
+    // ------------------------------
+    // Labs List
+    // ------------------------------
     @ElementCollection
     @CollectionTable(name = "lead_labs", joinColumns = @JoinColumn(name = "lead_id"))
-    @Column(name = "lab")
-    private List<String> labs = new ArrayList<>();
+    private List<LabPrice> labs = new ArrayList<>();
 
-    private String patientNote;
-    private String bookingAddress;
-    private Double paymentAmount;
+    // ------------------------------
+    // Tests List
+    // ------------------------------
+    @ElementCollection
+    @CollectionTable(name = "lead_tests", joinColumns = @JoinColumn(name = "lead_id"))
+    private List<TestPrice> tests = new ArrayList<>();
 
-    private String careHeadId;
-    private String careHeadName;
-    private String careHeadStatus;
+    private LocalDateTime bookingCreationDate = LocalDateTime.now();
 
-    private String careManagerId;
-    private String careManagerName;
-    private String careManagerStatus;
+    private String patientNote = "";
+    private String bookingAddress = "";
+    private String postalCode = "";
+    private String reportUrl = "";
+    private LocalDateTime patientExpectedTime;
 
-    private String labHeadId;
-    private String labHeadName;
-    private String labHeadStatus;
+    // ------------------------------
+    // Payment
+    // ------------------------------
+    private boolean paymentCollectedByPhlebo = false;
+    private Double paymentReceivedByPhlebo = 0.0;
 
-    private String phleboId;
-    private String phleboName;
-    private String phleboStatus;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
-    private String runnerId;
-    private String runnerName;
-    private String runnerStatus;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod = PaymentMethod.CASH;
 
-    private String bookingStatus;
+    private String paymentTransactionId = "";
+    private Double paymentAmount = 0.0;
+    private LocalDateTime paymentDate;
+
+    // ------------------------------
+    // Care Head
+    // ------------------------------
+    private String careHeadId = "";
+    private String careHeadName = "";
+
+    @Enumerated(EnumType.STRING)
+    private CareHeadStatus careHeadStatus = CareHeadStatus.INTERESTED;
+
+    // ------------------------------
+    // Care Manager
+    // ------------------------------
+    private String careManagerId = "";
+    private String careManagerName = "";
+
+    @Enumerated(EnumType.STRING)
+    private CareManagerStatus careManagerStatus = CareManagerStatus.ASSIGNED;
+
+    // ------------------------------
+    // Lab Head
+    // ------------------------------
+    private String labHeadId = "";
+    private String labHeadName = "";
+
+    @Enumerated(EnumType.STRING)
+    private LabHeadStatus labHeadStatus = LabHeadStatus.BOOKING_CONFIRM;
+
+    // ------------------------------
+    // Phlebo
+    // ------------------------------
+    private String phleboId = "";
+    private String phleboName = "";
+
+    @Enumerated(EnumType.STRING)
+    private PhleboStatus phleboStatus = PhleboStatus.ASSIGNED;
+
+    private LocalDateTime phleboArrivalTime;
+    private LocalDateTime phleboCompletionTime;
+    private String phleboNote = "";
 
     @Embedded
     @AttributeOverrides({
@@ -66,8 +126,18 @@ public class Leads {
     })
     private Location phleboLocation;
 
-    @Column(name = "booking_creation_date")
-    private LocalDateTime bookingCreationDate;
+    // ------------------------------
+    // Runner
+    // ------------------------------
+    private String runnerId = "";
+    private String runnerName = "";
+
+    @Enumerated(EnumType.STRING)
+    private RunnerStatus runnerStatus = RunnerStatus.ASSIGNED;
+
+    private LocalDateTime runnerPickupTime;
+    private LocalDateTime runnerDeliveryTime;
+    private String runnerNote = "";
 
     @Embedded
     @AttributeOverrides({
@@ -77,33 +147,60 @@ public class Leads {
     })
     private Location runnerLocation;
 
-    @OneToMany(mappedBy = "lead", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LeadHistory> history = new ArrayList<>();
+    // ------------------------------
+    // Booking Status
+    // ------------------------------
+    @Enumerated(EnumType.STRING)
+    private BookingStatus bookingStatus = BookingStatus.INTERESTED;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    // ------------------------------
+    // History
+    // ------------------------------
+    @ElementCollection
+    @CollectionTable(name = "lead_history", joinColumns = @JoinColumn(name = "lead_id"))
+    private List<History> history = new ArrayList<>();
 
-    @Column(name = "last_updated")
-    private LocalDateTime lastUpdated;
+    // ------------------------------
+    // Timestamps
+    // ------------------------------
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    // 🟩 Add these main coordinates for the lead
-    @Column(name = "lat")
-    private Double lat;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
-    @Column(name = "lng")
-    private Double lng;
 
-    // Helper method for history
-    public void addHistory(String role, String action, String assignedId, String assignedName,
-                           String updatedBy, String reason, LocalDateTime timestamp) {
-        LeadHistory h = new LeadHistory();
-        h.setRole(role);
+    // ======================================================
+    // Helper Methods
+    // ======================================================
+
+    public void addHistory(
+            String action,
+            String role,
+            String assignedId,
+            String assignedName,
+            String updatedBy,
+            String reason,
+            String string) {
+        History h = new History();
         h.setAction(action);
+        h.setRole(role);
         h.setAssignedId(assignedId);
         h.setAssignedName(assignedName);
         h.setUpdatedBy(updatedBy);
         h.setReason(reason);
-        h.setTimestamp(timestamp);
-        h.setLead(this);
+        h.setTimestamp(LocalDateTime.now());
         this.history.add(h);
     }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private AppUser user;
+
+    @UpdateTimestamp
+    private LocalDateTime lastUpdated;
+
+    private Double Lat;
+    private Double Lng;
+
+
 }
