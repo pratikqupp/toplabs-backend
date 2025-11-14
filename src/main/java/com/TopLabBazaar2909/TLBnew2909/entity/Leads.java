@@ -33,23 +33,27 @@ public class Leads {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    // ------------------------------
-    // User
-    // ------------------------------
+    // -----------------------------------
+    // USER
+    // -----------------------------------
     private String userId;
 
-    // ------------------------------
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "app_user_id")
+    private AppUser user;
+
+    // -----------------------------------
     // Labs List
-    // ------------------------------
+    // -----------------------------------
     @ElementCollection
     @CollectionTable(name = "lead_labs", joinColumns = @JoinColumn(name = "lead_id"))
     private List<LabPrice> labs = new ArrayList<>();
 
-    // ------------------------------
+    // -----------------------------------
     // Tests List
-    // ------------------------------
+    // -----------------------------------
     @ElementCollection
     @CollectionTable(name = "lead_tests", joinColumns = @JoinColumn(name = "lead_id"))
     private List<TestPrice> tests = new ArrayList<>();
@@ -62,9 +66,9 @@ public class Leads {
     private String reportUrl = "";
     private LocalDateTime patientExpectedTime;
 
-    // ------------------------------
+    // -----------------------------------
     // Payment
-    // ------------------------------
+    // -----------------------------------
     private boolean paymentCollectedByPhlebo = false;
     private Double paymentReceivedByPhlebo = 0.0;
 
@@ -78,36 +82,36 @@ public class Leads {
     private Double paymentAmount = 0.0;
     private LocalDateTime paymentDate;
 
-    // ------------------------------
+    // -----------------------------------
     // Care Head
-    // ------------------------------
+    // -----------------------------------
     private String careHeadId = "";
     private String careHeadName = "";
 
     @Enumerated(EnumType.STRING)
     private CareHeadStatus careHeadStatus = CareHeadStatus.INTERESTED;
 
-    // ------------------------------
+    // -----------------------------------
     // Care Manager
-    // ------------------------------
+    // -----------------------------------
     private String careManagerId = "";
     private String careManagerName = "";
 
     @Enumerated(EnumType.STRING)
     private CareManagerStatus careManagerStatus = CareManagerStatus.ASSIGNED;
 
-    // ------------------------------
+    // -----------------------------------
     // Lab Head
-    // ------------------------------
+    // -----------------------------------
     private String labHeadId = "";
     private String labHeadName = "";
 
     @Enumerated(EnumType.STRING)
     private LabHeadStatus labHeadStatus = LabHeadStatus.BOOKING_CONFIRM;
 
-    // ------------------------------
+    // -----------------------------------
     // Phlebo
-    // ------------------------------
+    // -----------------------------------
     private String phleboId = "";
     private String phleboName = "";
 
@@ -126,9 +130,9 @@ public class Leads {
     })
     private Location phleboLocation;
 
-    // ------------------------------
+    // -----------------------------------
     // Runner
-    // ------------------------------
+    // -----------------------------------
     private String runnerId = "";
     private String runnerName = "";
 
@@ -147,41 +151,48 @@ public class Leads {
     })
     private Location runnerLocation;
 
-    // ------------------------------
+    // -----------------------------------
     // Booking Status
-    // ------------------------------
+    // -----------------------------------
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus = BookingStatus.INTERESTED;
 
-    // ------------------------------
+    // -----------------------------------
     // History
-    // ------------------------------
+    // -----------------------------------
     @ElementCollection
     @CollectionTable(name = "lead_history", joinColumns = @JoinColumn(name = "lead_id"))
     private List<History> history = new ArrayList<>();
 
-    // ------------------------------
+    // -----------------------------------
+    // Geo Coordinates
+    // -----------------------------------
+    private Double lat;
+    private Double lng;
+
+    // -----------------------------------
     // Timestamps
-    // ------------------------------
+    // -----------------------------------
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    // Manual timestamp field (your requirement)
+    private LocalDateTime lastUpdated;
 
-    // ======================================================
-    // Helper Methods
-    // ======================================================
-
+    // -----------------------------------
+    // Helper Method (6 params only)
+    // -----------------------------------
     public void addHistory(
             String action,
             String role,
             String assignedId,
             String assignedName,
             String updatedBy,
-            String reason,
-            String string) {
+            String reason, String string) {
+
         History h = new History();
         h.setAction(action);
         h.setRole(role);
@@ -190,17 +201,7 @@ public class Leads {
         h.setUpdatedBy(updatedBy);
         h.setReason(reason);
         h.setTimestamp(LocalDateTime.now());
+
         this.history.add(h);
     }
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private AppUser user;
-
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
-
-    private Double Lat;
-    private Double Lng;
-
-
 }

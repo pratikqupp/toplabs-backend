@@ -67,7 +67,7 @@ public class LeadsController {
         return leadsService.deleteLead(id);
     }
 
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------
     // FILTER LEADS (role + positionId + status)
     // ------------------------------------------------------------
    //@PreAuthorize("isAuthenticated()")
